@@ -6,14 +6,13 @@ using System.Threading;
 
 namespace RTLSDR.Core
 {
-    public class IQFromCSV : PipelineBase<object, Complex>
+    public class IQFromCSV : PipelineBase<string, Complex>
     {
-        private string fileName;
-        public IQFromCSV(string file) : base(nameof(IQFromCSV))
+        public IQFromCSV() : base(nameof(IQFromCSV))
         {
-            fileName = file;
         }
-        protected override void doWork(IEnumerable<object> source, CancellationToken token)
+        
+        protected override void doWork(string fileName)
         {
             using (StreamReader reader = new StreamReader(fileName))
             {

@@ -5,33 +5,29 @@ using System.Threading;
 
 namespace RTLSDR.Core
 {
-    public class SampleCounter : PipelineBase<bool, Tuple<string, int>>
+    public class SampleCounter : PipelineBase<int, Tuple<string, int>>
     {
-        public SampleCounter():base(nameof(SampleCounter))
+        public SampleCounter() : base(nameof(SampleCounter))
         {
 
         }
-        protected override void doWork(IEnumerable<bool> source, CancellationToken token)
+        protected override void doWork(int item)
         {
-            bool lastValue = false;
+            int lastValue = 0;
             int counter = 0;
-            foreach (var item in source)
+
+
+            if (item == lastValue)
             {
-                if (token.IsCancellationRequested)
-                {
-                    return;
-                }
-                if (item==lastValue)
-                {
-                    counter++;
-                }
-                else
-                {
-                    Result.Add(new Tuple<string, int>(lastValue.ToString(), counter));
-                    counter = 1;
-                    lastValue = item;
-                }
+                counter++;
             }
+            else
+            {
+                Result.Add(new Tuple<string, int>(lastValue.ToString(), counter));
+                counter = 1;
+                lastValue = item;
+            }
+
         }
     }
 }

@@ -9,14 +9,21 @@ namespace ConsoleTest
 {
     class Program
     {
+        static string[] server = { "192.168.0.133,1234" };
+        private const string outputFolder= @"..\..\..\..\SampleData\";
+        private  const int SampleRate = 250000;
+        private  const int Frequency = 443900000;
         static void Main(string[] args)
         {
-            TCPReader reader = new TCPReader("192.168.0.133", 1234);
+            
             System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
             //signalDetect(reader,cts);
-            dumpSignalIQ(reader, cts);
+            //dumpSignalIQ(outputFolder + "IQ.csv", cts);
             //downSameTest("SingalIQ.csv", "SingalIQ_Down1000.csv",cts);
-            //dumpIQToFile("SingalIQ.csv", "SignalWave.csv", cts);
+            //dumpIQToWaveFile(outputFolder+"IQ.csv", outputFolder+"Wave.csv", cts);
+            //dumpIQToLPFWaveFile(outputFolder + "IQ.csv", outputFolder + "LPF.csv", cts);
+            //dumpIQToLPFWaveSQFile(outputFolder + "IQ.csv", outputFolder + "LPFSQ.csv", 0.6f,cts);
+            dumpIQToLPF_Wave_MA_SQFile(outputFolder + "IQ.csv", outputFolder + "LPF_MV_SQ.csv", 0.3f, cts);
             dumpQueue(cts.Token);
             Console.ReadLine();
             cts.Cancel();
@@ -24,8 +31,9 @@ namespace ConsoleTest
             PipelineManager.Default.WaitAllExit();
             Console.WriteLine("done");
         }
-        private static void signalDetect(TCPReader reader,CancellationTokenSource cts)
+        private static void signalDetect(CancellationTokenSource cts)
         {
+            TCPReader reader = new TCPReader();
             reader.Chain(new SignalPreProcessor())
                 .Chain(new IQ2Wave(433900000, 250000))
                 .Chain(new SkipSample<float>(250000/1000))
@@ -35,28 +43,30 @@ namespace ConsoleTest
                 .Chain(new SaveToFilePipeline<Tuple<string, int>>("output.csv", x => { return $"{x.Item1},{x.Item2}"; }) { ConsoleOutput = true,AutoFlush=true });
             //.Chain(new SaveToFilePipeline<float>("output.csv", x => { return $"{x}"; }));
             ;
-            reader.Start(null, cts.Token);
+            reader.Start(server, cts.Token);
         }
-        private static void dumpSignal(TCPReader reader, CancellationTokenSource cts)
+        private static void dumpSignal( CancellationTokenSource cts)
         {
+            TCPReader reader = new TCPReader();
             reader.Chain(new SignalPreProcessor())
                 .Chain(new IQ2Wave(433900000, 250000))
                 .Chain(new LPF(433900000f, 250000f,1000f))
                 .Chain(new SkipSample<float>(250000 / 10000))
                 //.Chain(new MoveAverage())
                 .Chain(new SaveToFilePipeline<float>("output.csv", x => { return $"{x}"; }));
-            reader.Start(null,cts.Token);
+            reader.Start(server, cts.Token);
         }
 
-        private static void dumpSignalIQ(TCPReader reader, CancellationTokenSource cts)
+        private static void dumpSignalIQ(string output, CancellationTokenSource cts)
         {
+            TCPReader reader = new TCPReader();
             reader.Chain(new SignalPreProcessor())
                 //.Chain(new IQ2Wave(433900000, 250000))
                 //.Chain(new LPF(433900000f, 250000f, 1000f))
-                .Chain(new SkipSample<Complex>(100))
+                //.Chain(new SkipSample<Complex>(100))
                 //.Chain(new MoveAverage())
-                .Chain(new SaveToFilePipeline<Complex>("output.csv", x => { return $"{x.Image},{x.Real}"; },"I,Q"));
-            reader.Start(null, cts.Token);
+                .Chain(new SaveToFilePipeline<Complex>(output, x => { return $"{x.Image},{x.Real}"; },"I,Q"));
+            reader.Start(server, cts.Token);
         }
         private static async void dumpQueue(CancellationToken token)
         {
@@ -72,21 +82,55 @@ namespace ConsoleTest
         }
         private static void downSameTest(string input,string output, CancellationTokenSource cts)
         {
-            var loader = new IQFromCSV(input);
+            var loader = new IQFromCSV();
             loader.Chain(new SkipSample<Complex>(1000))
-                .Chain(new SaveToFilePipeline<Complex>(output, x => { return $"{x.Image},{x.Real}"; }, "I,Q") { AutoFlush = true, AddTime=false })
+                .Chain(new SaveToFilePipeline<Complex>(output, x => { return $"{x.Image},{x.Real}"; }, "I,Q") { AutoFlush = true })
                 ;
-            loader.Start(null,cts.Token);
+            loader.Start(new string[]{input}, cts.Token);
             Console.WriteLine("done");
         }
-        private static void dumpIQToFile(string input, string output, CancellationTokenSource cts)
+        private static void dumpIQToWaveFile(string input, string output, CancellationTokenSource cts)
         {
-            var loader = new IQFromCSV(input);
+            var loader = new IQFromCSV();
             loader.Chain(new IQ2Wave(433900000,250000))
-                .Chain(new SaveToFilePipeline<float>(output, x => { return $"{x}"; }, "data") { AutoFlush = true, AddTime = false })
+                .Chain(new SaveToFilePipeline<float>(output, x => { return $"{x}"; }, "data") { AutoFlush = true })
                 ;
-            loader.Start(null, cts.Token);
+            loader.Start(new string[] { input }, cts.Token);
             Console.WriteLine("done");
+        }
+
+        private static void dumpIQToLPFWaveFile(string input, string output, CancellationTokenSource cts)
+        {
+            var loader = new IQFromCSV();
+            loader.Chain(new IQ2Wave(Frequency, SampleRate))
+                .Chain(new LPF(Frequency,SampleRate,1000))
+                .Chain(new SaveToFilePipeline<float>(output, x => { return $"{x}"; }, "data") { AutoFlush = true })
+                ;
+            loader.Start(new string[] { input }, cts.Token);
+            Console.WriteLine("done");
+        }
+
+        private static void dumpIQToLPFWaveSQFile(string input, string output,float threshhold, CancellationTokenSource cts)
+        {
+            var loader = new IQFromCSV();
+            loader.Chain(new IQ2Wave(Frequency, SampleRate))
+                .Chain(new LPF(Frequency, SampleRate, 1000))
+                .Chain(new SignalCompare(threshhold))
+                .Chain(new SaveToFilePipeline<int>(output, x => { return $"{x}"; }, "data") { AutoFlush = false })
+                ;
+            loader.Start(new string[] { input }, cts.Token);
+            Console.WriteLine("done");
+        }
+        private static void dumpIQToLPF_Wave_MA_SQFile(string input, string output, float threshhold, CancellationTokenSource cts)
+        {
+            var loader = new IQFromCSV();
+            loader.Chain(new IQ2Wave(Frequency, SampleRate))
+                .Chain(new LPF(Frequency, SampleRate, 1000))
+                .Chain(new MoveAverage())
+                .Chain(new SignalCompare(threshhold))
+                .Chain(new SaveToFilePipeline<int>(output, x => { return $"{x}"; }, "data") { AutoFlush = false })
+                ;
+            loader.Start(new string[] { input }, cts.Token);
         }
     }
 }

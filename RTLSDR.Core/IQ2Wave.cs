@@ -12,17 +12,11 @@ namespace RTLSDR.Core
         {
             radisInSample = (float)Math.PI * 2 * Frequency / Samplerate;
         }
-        
-        protected override void doWork(IEnumerable<Complex> source, CancellationToken token)
+
+        protected override void doWork(Complex item)
         {
-            foreach (var item in source)
-            {
-                if (token.IsCancellationRequested)
-                {
-                    return;
-                }
-                Result.Add(item.Image * (float)Math.Cos(radisInSample) - item.Real * (float)Math.Sin(radisInSample++));
-            }
+
+            Result.Add(item.Image * (float)Math.Cos(radisInSample) - item.Real * (float)Math.Sin(radisInSample++));
         }
     }
 }

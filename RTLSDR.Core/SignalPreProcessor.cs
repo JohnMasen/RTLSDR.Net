@@ -19,7 +19,7 @@ namespace RTLSDR.Core
     {
         private float[] map = new float[256];
         const float scale = 1.0f / 127.5f;
-        public SignalPreProcessor():base(nameof(SignalPreProcessor))
+        public SignalPreProcessor() : base(nameof(SignalPreProcessor))
         {
             for (int i = 0; i < 256; i++)
             {
@@ -27,31 +27,26 @@ namespace RTLSDR.Core
             }
         }
 
-        protected override void doWork(IEnumerable<byte[]> source, CancellationToken token)
+        protected override void doWork(byte[] item)
         {
-            foreach (var item in source)
+
+            if (item.Length % 2 != 0)
             {
-                if (token.IsCancellationRequested)
-                {
-                    return;
-                }
-                if (item.Length % 2 != 0)
-                {
-                    throw new InvalidOperationException("byte size error");
-                }
-                var itemSpan = item.AsSpan();
-                int index = 0;
-                while (index<item.Length)
-                {
-                    Complex r = new Complex
-                    {
-                        Image = map[itemSpan[index++]],
-                        Real = map[itemSpan[index++]]
-                    };
-                    Result.Add(r);
-                }
-                
+                throw new InvalidOperationException("byte size error");
             }
+            var itemSpan = item.AsSpan();
+            int index = 0;
+            while (index < item.Length)
+            {
+                Complex r = new Complex
+                {
+                    Image = map[itemSpan[index++]],
+                    Real = map[itemSpan[index++]]
+                };
+                Result.Add(r);
+            }
+
+
         }
     }
 }

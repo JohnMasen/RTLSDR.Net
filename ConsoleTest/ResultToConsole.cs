@@ -12,16 +12,12 @@ namespace ConsoleTest
         {
 
         }
-        protected override void doWork(IEnumerable<T> source, CancellationToken token)
+        protected override void doWork(T item)
         {
-            foreach (var item in source)
-            {
-                if (token.IsCancellationRequested)
-                {
-                    return;
-                }
+            
+                
                 Console.WriteLine(item);
-            }
+            
         }
     }
 }

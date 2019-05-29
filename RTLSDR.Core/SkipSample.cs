@@ -8,19 +8,14 @@ namespace RTLSDR.Core
     public class SkipSample<T> : PipelineBase<T, T>
     {
         public int Gap { get; private set; }
+        int count = 0;
         public SkipSample(int gap):base(nameof(SkipSample<T>))
         {
             Gap = gap;
         }
-        protected override void doWork(IEnumerable<T> source, CancellationToken token)
+        protected override void doWork(T item)
         {
-            int count = 0;
-            foreach (var item in source)
-            {
-                if (token.IsCancellationRequested)
-                {
-                    return;
-                }
+                
                 if (count<Gap)
                 {
                     count++;
@@ -30,7 +25,6 @@ namespace RTLSDR.Core
                     Result.Add(item);
                     count = 0;
                 }
-            }
         }
     }
 }

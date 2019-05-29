@@ -13,19 +13,15 @@ namespace RTLSDR.Core
             a = 1f / (1f + 1f / (2f * (float)Math.PI *(frequency / samplerate)*cutoff));
         }
         private float lastValue = 0f;
-        protected override void doWork(IEnumerable<float> source, CancellationToken token)
+        protected override void doWork(float item)
         {
-            foreach (var item in source)
-            {
-                float v = Math.Max(item,0);
-                if (token.IsCancellationRequested)
-                {
-                    return;
-                }
+            
+                float v = Math.Abs(item);
+
+
                 float value = lastValue + a * (v - lastValue);
-                lastValue = v;
-                Result.Add(v);
-            }
+                lastValue = value;
+                Result.Add(value);
             
         }
     }

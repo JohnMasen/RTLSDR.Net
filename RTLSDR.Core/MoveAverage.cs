@@ -8,22 +8,21 @@ namespace RTLSDR.Core
     public class MoveAverage : PipelineBase<float, float>
     {
         private int size;
-        public MoveAverage(int size=10):base(nameof(MoveAverage))
+        Queue<float> buffer;
+        public MoveAverage(int size = 10) : base(nameof(MoveAverage))
         {
             this.size = size;
+            buffer = new Queue<float>(size + 1);
         }
-        protected override void doWork(IEnumerable<float> source, CancellationToken token)
+        protected override void doWork(float item)
         {
-            Queue<float> buffer = new Queue<float>();
-            foreach (var item in source)
+            
+
+            buffer.Enqueue(item);
+            if (buffer.Count > size)
             {
-                buffer.Enqueue(item);
-                if (buffer.Count>size)
-                {
-                    buffer.Dequeue();
-                    Result.Add(buffer.Average());
-                }
-                
+                buffer.Dequeue();
+                Result.Add(buffer.Average());
             }
         }
     }

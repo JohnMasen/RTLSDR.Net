@@ -10,14 +10,26 @@ namespace RTLSDR.Core
 {
     public class TCPReader:PipelineBase<string,byte[]>
     {
-        System.Net.Sockets.TcpClient client = new System.Net.Sockets.TcpClient();
-        public TCPReader(string address,int port):base("TCPReader")
+        System.Net.Sockets.TcpClient client;
+        CancellationToken token;
+        public TCPReader():base("TCPReader")
         {
-            client = new System.Net.Sockets.TcpClient(address, port);
         }
 
-        protected override void doWork(IEnumerable<string> source, CancellationToken token)
+        public override void Start(IEnumerable<string> source, CancellationToken token)
         {
+            this.token = token;
+            base.Start(source, token);
+        }
+        protected override void Init()
+        {
+            
+        }
+
+        protected override void doWork(string source)
+        {
+            string[] addr = source.Split(",");
+            client = new System.Net.Sockets.TcpClient(addr[0], int.Parse(addr[1]));
             byte[] header = new byte[12];
             using (BinaryReader reader = new BinaryReader(client.GetStream()))
             {

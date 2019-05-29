@@ -11,12 +11,9 @@ namespace RTLSDR.Core
         {
 
         }
-        protected override void doWork(IEnumerable<T> source, CancellationToken token)
-        {
-            foreach (var item in source)
-            {
 
-            }
+        protected override void doWork(T source)
+        {
         }
     }
 }

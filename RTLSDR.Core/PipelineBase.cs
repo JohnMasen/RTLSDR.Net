@@ -19,15 +19,33 @@ namespace RTLSDR.Core
             PipelineManager.Default.Register(this);
         }
         public BlockingCollection<TOutput> Result { get; private set; } = new BlockingCollection<TOutput>();
-        public void Start(IEnumerable<TSource> source, CancellationToken token)
+        public virtual void Start(IEnumerable<TSource> source, CancellationToken token)
         {
             cancelToken = token;
             Task.Factory.StartNew(() => 
             {
-                doWork(source, token);
+                Init();
+                foreach (var item in source)
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+                    doWork(item);
+                    if (token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+                }
+                CleanUp();
+                Result.CompleteAdding();
                 (WaitHandle as ManualResetEvent).Set();
                 Console.WriteLine($"{Name} exit success");
             }, token);
+        }
+        protected virtual void Init()
+        {
+
         }
 
         public PipelineBase<TOutput, TClassOutput> Chain<TClassOutput>(PipelineBase<TOutput, TClassOutput> instance)
@@ -36,8 +54,12 @@ namespace RTLSDR.Core
             return instance;
         }
 
+        protected virtual void CleanUp()
+        {
 
-        protected abstract void doWork(IEnumerable<TSource> source, CancellationToken token);
+        }
+
+        protected abstract void doWork(TSource source);
         public int Length
         {
             get
