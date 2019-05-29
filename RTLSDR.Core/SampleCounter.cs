@@ -7,14 +7,15 @@ namespace RTLSDR.Core
 {
     public class SampleCounter : PipelineBase<int, Tuple<string, int>>
     {
+        int lastValue = 0;
+        int counter = 0;
         public SampleCounter() : base(nameof(SampleCounter))
         {
 
         }
         protected override void doWork(int item)
         {
-            int lastValue = 0;
-            int counter = 0;
+            
 
 
             if (item == lastValue)

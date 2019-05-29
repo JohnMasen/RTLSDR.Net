@@ -23,7 +23,8 @@ namespace ConsoleTest
             //dumpIQToWaveFile(outputFolder+"IQ.csv", outputFolder+"Wave.csv", cts);
             //dumpIQToLPFWaveFile(outputFolder + "IQ.csv", outputFolder + "LPF.csv", cts);
             //dumpIQToLPFWaveSQFile(outputFolder + "IQ.csv", outputFolder + "LPFSQ.csv", 0.6f,cts);
-            dumpIQToLPF_Wave_MA_SQFile(outputFolder + "IQ.csv", outputFolder + "LPF_MV_SQ.csv", 0.3f, cts);
+            //dumpIQToLPF_Wave_MA_SQFile(outputFolder + "IQ.csv", outputFolder + "LPF_MV_SQ.csv", 0.3f, cts);
+            dumpIQToLPF_Wave_MA_SQ_SCFile(outputFolder + "IQ.csv", outputFolder + "LPF_MV_SQ_SC.csv", 0.3f, cts);
             dumpQueue(cts.Token);
             Console.ReadLine();
             cts.Cancel();
@@ -129,6 +130,19 @@ namespace ConsoleTest
                 .Chain(new MoveAverage())
                 .Chain(new SignalCompare(threshhold))
                 .Chain(new SaveToFilePipeline<int>(output, x => { return $"{x}"; }, "data") { AutoFlush = false })
+                ;
+            loader.Start(new string[] { input }, cts.Token);
+        }
+
+        private static void dumpIQToLPF_Wave_MA_SQ_SCFile(string input, string output, float threshhold, CancellationTokenSource cts)
+        {
+            var loader = new IQFromCSV();
+            loader.Chain(new IQ2Wave(Frequency, SampleRate))
+                .Chain(new LPF(Frequency, SampleRate, 1000))
+                .Chain(new MoveAverage())
+                .Chain(new SignalCompare(threshhold))
+                .Chain(new SampleCounter())
+                .Chain(new SaveToFilePipeline<Tuple<string,int>>(output, x => { return $"{x.Item1},{x.Item2}"; }, "value,count") { AutoFlush = false })
                 ;
             loader.Start(new string[] { input }, cts.Token);
         }
