@@ -1,9 +1,11 @@
 ﻿using RTLSDR.Core;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace ConsoleTest
 {
@@ -20,18 +22,26 @@ namespace ConsoleTest
                 SampleRate=SampleRate,
                 FrequencyCorrection=0,
                 Gain=0,
-                ServerIP="127.0.0.1",
-                //ServerIP="192.168.0.133",
+                //ServerIP="127.0.0.1",
+                ServerIP="192.168.0.133",
                 ServerPort=1234,
                 BiasTee=SampleRate
             }
         };
-        
+
+        private const int SIGNAL_LENGTH = 100;
+        private static readonly Dictionary<int, byte> map = new Dictionary<int, byte>();
+
+
         static void Main(string[] args)
         {
+            map.Add(0, 0);
+            map.Add(1, 1);
 
             System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
-            signalDetect(outputFolder + "signal.csv", cts);
+            //signalDetect(outputFolder + "signal.csv", cts);
+            //BitSignalDetect(outputFolder + "signal.csv", cts);
+            MorseSignalDetect("morse.csv", cts);
             //dumpSignalIQ(outputFolder + "IQ.csv", cts);
             //dumpSignalIQRAW(outputFolder + "IQRaw.bin", cts);
             //downSameTest("SingalIQ.csv", "SingalIQ_Down1000.csv",cts);
@@ -47,18 +57,58 @@ namespace ConsoleTest
             PipelineManager.Default.WaitAllExit();
             Console.WriteLine("done");
         }
-        private static void signalDetect(string outputFileName,CancellationTokenSource cts)
+        private static void signalDetect(string outputFileName, CancellationTokenSource cts)
         {
             TCPReader reader = new TCPReader();
             reader.Chain(new SignalPreProcessor() { IQOutput = IQOutputEnum.IChannel })
-                .Chain(new IQ2Wave(433900000, 250000))
+                .Chain(new IQ2Wave(Frequency, SampleRate))
                 //.Chain(new SkipSample<float>(250000 / 1000))
-                .Chain(new LPF(433900000f, 250000f, 1000f))
+                .Chain(new LPF(Frequency, SampleRate, 1000f))
                 .Chain(new MoveAverage())
                 .Chain(new SignalCompare(0.2f))
                 .Chain(new SampleCounter())
-                .Chain(new SaveToFilePipeline<Tuple<string, int>>(outputFileName, x => { return $"{x.Item1},{x.Item2}"; }) { ConsoleOutput = true, AutoFlush = true });
+                //.Chain(new SignalToByteArray(map,SIGNAL_LENGTH))
+                .Chain(new SaveToFilePipeline<Tuple<int?, int>>(outputFileName, x => { return $"{x.Item1 ?? -1},{x.Item2}"; }) { ConsoleOutput = true });
             //.Chain(new SaveToFilePipeline<float>("output.csv", x => { return $"{x}"; }));
+            ;
+            reader.Start(server, cts.Token);
+        }
+
+        private static void BitSignalDetect(string outputFileName, CancellationTokenSource cts)
+        {
+            TCPReader reader = new TCPReader();
+            reader.Chain(new SignalPreProcessor() { IQOutput = IQOutputEnum.IChannel })
+                .Chain(new IQ2Wave(Frequency, SampleRate))
+                //.Chain(new SkipSample<float>(250000 / 1000))
+                .Chain(new LPF(Frequency, SampleRate, 1000f))
+                .Chain(new MoveAverage())
+                .Chain(new SignalCompare(0.2f))
+                .Chain(new SampleCounter())
+                .Chain(new SignalToByteArray(map, SIGNAL_LENGTH))
+                .Chain(new SaveToFilePipeline<byte[]>(outputFileName, x => { return $"{BitConverter.ToString(x)}"; }) { ConsoleOutput = true });
+            ;
+            reader.Start(server, cts.Token);
+        }
+
+        private static void MorseSignalDetect(string outputFileName, CancellationTokenSource cts)
+        {
+            TCPReader reader = new TCPReader();
+            reader.Chain(new SignalPreProcessor() { IQOutput = IQOutputEnum.IChannel })
+                .Chain(new IQ2Wave(Frequency, SampleRate))
+                //.Chain(new SkipSample<float>(250000 / 1000))
+                .Chain(new LPF(Frequency, SampleRate, 1000f))
+                .Chain(new MoveAverage())
+                .Chain(new SignalCompare(0.2f))
+                .Chain(new SampleCounter())
+                .Chain(new SignalToByteArray(map, SIGNAL_LENGTH))
+                .Chain(new MorseDecode())
+                .Chain(new SaveToFilePipeline<IEnumerable<bool>>(outputFileName, x =>
+                {
+                    var data = from item in x
+                               select item ? "1" : "0";
+                    return DateTime.Now.ToString("s") + string.Join(',', data);
+                },"time,data")
+                { ConsoleOutput = true });
             ;
             reader.Start(server, cts.Token);
         }
@@ -66,9 +116,9 @@ namespace ConsoleTest
         {
             TCPReader reader = new TCPReader();
             reader.Chain(new SignalPreProcessor() { IQOutput = IQOutputEnum.IChannel })
-                .Chain(new IQ2Wave(433900000, 250000))
-                .Chain(new LPF(433900000f, 250000f, 1000f))
-                .Chain(new SkipSample<float>(250000 / 10000))
+                .Chain(new IQ2Wave(Frequency, SampleRate))
+                .Chain(new LPF(Frequency, SampleRate, 1000f))
+                .Chain(new SkipSample<float>(SampleRate / 10000))
                 //.Chain(new MoveAverage())
                 .Chain(new SaveToFilePipeline<float>("output.csv", x => { return $"{x}"; }));
             reader.Start(server, cts.Token);
@@ -91,8 +141,8 @@ namespace ConsoleTest
             TCPReader reader = new TCPReader();
             reader
                 //.Chain(new SignalPreProcessor())
-                //.Chain(new IQ2Wave(433900000, 250000))
-                //.Chain(new LPF(433900000f, 250000f, 1000f))
+                //.Chain(new IQ2Wave(Frequency, 250000))
+                //.Chain(new LPF(Frequency, 250000f, 1000f))
                 //.Chain(new SkipSample<Complex>(100))
                 //.Chain(new MoveAverage())
                 .Chain(new SaveToFilePipeline<byte[]>(output, x => { return $"{x}"; }));
@@ -122,7 +172,7 @@ namespace ConsoleTest
         private static void dumpIQToWaveFile(string input, string output, CancellationTokenSource cts)
         {
             var loader = new IQFromCSV();
-            loader.Chain(new IQ2Wave(433900000, 250000))
+            loader.Chain(new IQ2Wave(Frequency, SampleRate))
                 .Chain(new SaveToFilePipeline<float>(output, x => { return $"{x}"; }, "data") { AutoFlush = true })
                 ;
             loader.Start(new string[] { input }, cts.Token);
@@ -171,7 +221,7 @@ namespace ConsoleTest
                 .Chain(new MoveAverage())
                 .Chain(new SignalCompare(threshhold))
                 .Chain(new SampleCounter())
-                .Chain(new SaveToFilePipeline<Tuple<string, int>>(output, x => { return $"{x.Item1},{x.Item2}"; }, "value,count") { AutoFlush = false })
+                .Chain(new SaveToFilePipeline<Tuple<int?, int>>(output, x => { return $"{x.Item1},{x.Item2}"; }, "value,count") { AutoFlush = false })
                 ;
             loader.Start(new string[] { input }, cts.Token);
         }

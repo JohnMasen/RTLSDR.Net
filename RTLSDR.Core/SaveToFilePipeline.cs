@@ -51,7 +51,7 @@ namespace RTLSDR.Core
         protected override void doWork(T item)
         {
 
-            if (isByteArray)
+            if (isByteArray && p==null)
             {
                 var s = ((object)item as byte[]).AsSpan<byte>();
 

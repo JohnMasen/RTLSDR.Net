@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace RTLSDR.Core
 {
-    public class SampleCounter : PipelineBase<int, Tuple<string, int>>
+    public class SampleCounter : PipelineBase<int, Tuple<int?, int>>
     {
         int lastValue = 0;
         int counter = 0;
@@ -16,20 +16,17 @@ namespace RTLSDR.Core
         }
         protected override void doWork(int item)
         {
-            
-
-
             if (item == lastValue)
             {
                 counter++;
                 if (counter==stopSteps)
                 {
-                    Result.Add(new Tuple<string, int>("Stop", 0));
+                    Result.Add(new Tuple<int?, int>(null, 0));
                 }
             }
             else
             {
-                Result.Add(new Tuple<string, int>(lastValue.ToString(), counter));
+                Result.Add(new Tuple<int?, int>(lastValue, counter));
                 counter = 1;
                 lastValue = item;
             }
