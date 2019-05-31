@@ -16,7 +16,7 @@ namespace RTLSDR.Core
         protected override void doWork(Complex item)
         {
 
-            Result.Add(item.Image * (float)Math.Cos(radisInSample) - item.Real * (float)Math.Sin(radisInSample++));
+            Result.Add(item.Image * (float)Math.Cos(radisInSample) - item.Real * (float)Math.Sin(radisInSample));
         }
     }
 }

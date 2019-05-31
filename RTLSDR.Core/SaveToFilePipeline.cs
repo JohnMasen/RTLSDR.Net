@@ -13,6 +13,9 @@ namespace RTLSDR.Core
         private Func<T, string> p;
         public bool ConsoleOutput { get; set; } = false;
         public bool AutoFlush { get; set; } = false;
+
+        private bool isByte = typeof(T) == typeof(byte);
+        private bool isByteArray = typeof(T) == typeof(byte[]);
         private Func<string> headerFunc;
         private StreamWriter writer;
         public SaveToFilePipeline(string fileName, Func<T, string> parser, string header) : base(nameof(SaveToFilePipeline<T>))
@@ -39,7 +42,7 @@ namespace RTLSDR.Core
                 writer.WriteLine(headerFunc());
             }
             base.Start(source, token);
-            
+
         }
         protected override void CleanUp()
         {
@@ -47,16 +50,24 @@ namespace RTLSDR.Core
         }
         protected override void doWork(T item)
         {
-                writer.WriteLine(p(item));
-                if (ConsoleOutput)
-                {
-                    Console.WriteLine(p(item));
-                }
-                if (AutoFlush)
-                {
-                    writer.Flush();
-                }
-            
+
+            if (isByteArray)
+            {
+                var s = ((object)item as byte[]).AsSpan<byte>();
+
+                writer.BaseStream.Write(s);
+                return;
+            }
+            writer.WriteLine(p(item));
+            if (ConsoleOutput)
+            {
+                Console.WriteLine(p(item));
+            }
+            if (AutoFlush)
+            {
+                writer.Flush();
+            }
+
         }
     }
 }

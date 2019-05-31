@@ -15,8 +15,16 @@ namespace RTLSDR.Core
             return $"Real={Real},Image={Image}";
         }
     }
+    [Flags]
+    public enum IQOutputEnum
+    {
+        IChannel,
+        QChannel
+    }
+
     public class SignalPreProcessor : PipelineBase<byte[], Complex>
     {
+        public IQOutputEnum IQOutput { get; set; } = IQOutputEnum.IChannel | IQOutputEnum.QChannel;
         private float[] map = new float[256];
         const float scale = 1.0f / 127.5f;
         public SignalPreProcessor() : base(nameof(SignalPreProcessor))
@@ -40,8 +48,8 @@ namespace RTLSDR.Core
             {
                 Complex r = new Complex
                 {
-                    Image = map[itemSpan[index++]],
-                    Real = map[itemSpan[index++]]
+                    Image = IQOutput.HasFlag(IQOutputEnum.IChannel) ? map[itemSpan[index++]] : 0f,
+                    Real = IQOutput.HasFlag(IQOutputEnum.IChannel) ? map[itemSpan[index++]] : 0f,
                 };
                 Result.Add(r);
             }
