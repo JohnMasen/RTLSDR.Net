@@ -41,7 +41,8 @@ namespace ConsoleTest
             System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
             //signalDetect(outputFolder + "signal.csv", cts);
             //BitSignalDetect(outputFolder + "signal.csv", cts);
-            MorseSignalDetect("morse.csv", cts);
+            //MorseSignalDetect("morse.csv", cts);
+            WeatherDataOutput("WeatherData.csv", cts);
             //dumpSignalIQ(outputFolder + "IQ.csv", cts);
             //dumpSignalIQRAW(outputFolder + "IQRaw.bin", cts);
             //downSameTest("SingalIQ.csv", "SingalIQ_Down1000.csv",cts);
@@ -90,6 +91,29 @@ namespace ConsoleTest
             reader.Start(server, cts.Token);
         }
 
+        private static void WeatherDataOutput(string outputFileName, CancellationTokenSource cts)
+        {
+            TCPReader reader = new TCPReader();
+            reader.Chain(new SignalPreProcessor() { IQOutput = IQOutputEnum.IChannel })
+                .Chain(new IQ2Wave(Frequency, SampleRate))
+                //.Chain(new SkipSample<float>(250000 / 1000))
+                .Chain(new LPF(Frequency, SampleRate, 1000f))
+                .Chain(new MoveAverage())
+                .Chain(new SignalCompare(0.2f))
+                .Chain(new SampleCounter())
+                .Chain(new SignalToByteArray(map, SIGNAL_LENGTH))
+                .Chain(new MorseDecode())
+                .Chain(new SignalReverse())
+                .Chain(new MisolWeatherStationDecoder())
+                .Chain(new SaveToFilePipeline<MisolWeahterData>(outputFileName, x =>
+                {
+                    return $"{DateTime.Now.ToString("s")},{Newtonsoft.Json.JsonConvert.SerializeObject(x)}";
+                }, "time,data")
+                { ConsoleOutput = true });
+            ;
+            reader.Start(server, cts.Token);
+        }
+
         private static void MorseSignalDetect(string outputFileName, CancellationTokenSource cts)
         {
             TCPReader reader = new TCPReader();
@@ -102,11 +126,12 @@ namespace ConsoleTest
                 .Chain(new SampleCounter())
                 .Chain(new SignalToByteArray(map, SIGNAL_LENGTH))
                 .Chain(new MorseDecode())
+                .Chain(new SignalReverse())
                 .Chain(new SaveToFilePipeline<IEnumerable<bool>>(outputFileName, x =>
                 {
                     var data = from item in x
                                select item ? "1" : "0";
-                    return DateTime.Now.ToString("s") + string.Join(',', data);
+                    return DateTime.Now.ToString("s") +","+ string.Join(',', data);
                 },"time,data")
                 { ConsoleOutput = true });
             ;
