@@ -18,12 +18,12 @@ namespace RTLSDR.Core
             {
                 string line = reader.ReadLine();
                 var index = DetectIndex(line);
-                float i, q;
+                byte i, q;
                 line = reader.ReadLine();
                 while (line != null)
                 {
                     var items = line.Split(",");
-                    if (float.TryParse(items[index.I], out i) && float.TryParse(items[index.Q], out q))
+                    if (byte.TryParse(items[index.I], out i) && byte.TryParse(items[index.Q], out q))
                     {
                         Result.Add(new Complex() { Image = i, Real = q });
                     }

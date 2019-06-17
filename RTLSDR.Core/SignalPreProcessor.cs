@@ -8,8 +8,8 @@ namespace RTLSDR.Core
 {
     public struct Complex
     {
-        public float Real;
-        public float Image;
+        public byte Real;
+        public byte Image;
         public override string ToString()
         {
             return $"Real={Real},Image={Image}";
@@ -37,7 +37,6 @@ namespace RTLSDR.Core
 
         protected override void doWork(byte[] item)
         {
-
             if (item.Length % 2 != 0)
             {
                 throw new InvalidOperationException("byte size error");
@@ -48,8 +47,8 @@ namespace RTLSDR.Core
             {
                 Complex r = new Complex
                 {
-                    Image = IQOutput.HasFlag(IQOutputEnum.IChannel) ? map[itemSpan[index++]] : 0f,
-                    Real = IQOutput.HasFlag(IQOutputEnum.IChannel) ? map[itemSpan[index++]] : 0f,
+                    Image = IQOutput.HasFlag(IQOutputEnum.IChannel) ? itemSpan[index++] : byte.MinValue,
+                    Real = IQOutput.HasFlag(IQOutputEnum.IChannel) ? itemSpan[index++] : byte.MinValue,
                 };
                 Result.Add(r);
             }

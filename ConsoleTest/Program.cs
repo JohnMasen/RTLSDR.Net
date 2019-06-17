@@ -23,7 +23,7 @@ namespace ConsoleTest
                 FrequencyCorrection=0,
                 Gain=0,
                 //ServerIP="127.0.0.1",
-                ServerIP="192.168.0.133",
+                ServerIP="192.168.0.134",
                 ServerPort=1234,
                 BiasTee=SampleRate
             }
@@ -42,6 +42,7 @@ namespace ConsoleTest
             //signalDetect(outputFolder + "signal.csv", cts);
             //BitSignalDetect(outputFolder + "signal.csv", cts);
             //MorseSignalDetect("morse.csv", cts);
+            //simpleTest(cts);
             WeatherDataOutput("WeatherData.csv", cts);
             //dumpSignalIQ(outputFolder + "IQ.csv", cts);
             //dumpSignalIQRAW(outputFolder + "IQRaw.bin", cts);
@@ -58,6 +59,26 @@ namespace ConsoleTest
             PipelineManager.Default.WaitAllExit();
             Console.WriteLine("done");
         }
+
+        private static void simpleTest(CancellationTokenSource cts)
+        {
+            TCPReader reader = new TCPReader();
+            reader
+                .Chain(new SignalPreProcessor() { IQOutput = IQOutputEnum.IChannel })
+                .Chain(new IQ2Wave(Frequency, SampleRate))
+                //.Chain(new LPF(Frequency, SampleRate, 1000f))
+                //.Chain(new MoveAverage())
+                //.Chain(new SignalCompare(0.2f))
+                //.Chain(new SampleCounter())
+                //.Chain(new SignalToByteArray(map, SIGNAL_LENGTH))
+                //.Chain(new MorseDecode())
+                //.Chain(new SignalReverse())
+                //.Chain(new MisolWeatherStationDecoder())
+
+                .Chain(new NullProcessor<float>());
+            reader.Start(server, cts.Token);
+        }
+
         private static void signalDetect(string outputFileName, CancellationTokenSource cts)
         {
             TCPReader reader = new TCPReader();

@@ -8,21 +8,20 @@ namespace RTLSDR.Core
     public class LPF : PipelineBase<float, float>
     {
         private float a;
-        public LPF(float frequency,float samplerate,float cutoff):base(nameof(LPF))
+        public LPF(float frequency, float samplerate, float cutoff) : base(nameof(LPF))
         {
-            a = 1f / (1f + 1f / (2f * (float)Math.PI *(frequency / samplerate)*cutoff));
+            a = 1f / (1f + 1f / (2f * (float)Math.PI * (frequency / samplerate) * cutoff));
         }
         private float lastValue = 0f;
         protected override void doWork(float item)
         {
-            
-                float v = Math.Abs(item);
 
+            float v = item < 0 ? -item : item;
 
-                float value = lastValue + a * (v - lastValue);
-                lastValue = value;
-                Result.Add(value);
-            
+            float value = lastValue + a * (v - lastValue);
+            lastValue = value;
+            Result.Add(value);
+
         }
     }
 }
