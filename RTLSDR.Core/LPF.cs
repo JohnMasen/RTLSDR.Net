@@ -16,7 +16,7 @@ namespace RTLSDR.Core
         protected override void doWork(float item)
         {
 
-            float v = item < 0 ? -item : item;
+            float v = item < 0f ? -item : item;
 
             float value = lastValue + a * (v - lastValue);
             lastValue = value;

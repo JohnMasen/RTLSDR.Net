@@ -9,20 +9,25 @@ namespace RTLSDR.Core
     {
         private int size;
         Queue<float> buffer;
+        float value = 0f;
+        float weight;
         public MoveAverage(int size = 10) : base(nameof(MoveAverage))
         {
             this.size = size;
-            buffer = new Queue<float>(size + 1);
+            buffer = new Queue<float>(size);
+            weight = 1f / size;
         }
         protected override void doWork(float item)
         {
-            
+            float temp= item * weight;
 
-            buffer.Enqueue(item);
-            if (buffer.Count > size)
+            buffer.Enqueue(temp);
+            value += temp;
+
+            if (buffer.Count == size)
             {
-                buffer.Dequeue();
-                Result.Add(buffer.Average());
+                Result.Add(value);
+                value -=buffer.Dequeue();
             }
         }
     }
