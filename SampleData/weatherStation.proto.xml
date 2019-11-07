@@ -1,0 +1,45 @@
+<?xml version="1.0" ?>
+<protocol>
+   <decodings>
+      <decoding>'Non Return To Zero (NRZ)', </decoding>
+      <decoding>'Non Return To Zero Inverted (NRZ-I)', 'Invert', </decoding>
+      <decoding>'Manchester I', 'Edge Trigger', </decoding>
+      <decoding>'Manchester II', 'Edge Trigger', 'Invert', </decoding>
+      <decoding>'Differential Manchester', 'Edge Trigger', 'Differential Encoding', </decoding>
+      <decoding>'Morse', 'Morse Code', '1;3;2', 'Invert', </decoding>
+   </decodings>
+   <participants>
+      <participant address_hex="" color_index="0" id="0a726551-8541-4eb8-84cc-f7dc18182423" name="Alice" relative_rssi="0" shortname="A" simulate="0"/>
+      <participant address_hex="" color_index="1" id="91427e77-8f3b-4fac-b86f-90637c1a689b" name="Bob" relative_rssi="1" shortname="B" simulate="0"/>
+   </participants>
+   <messages>
+      <message bits="1001001001001001001001001111001001111001111001001001001001001111001111001111001111001001111001111001111001001001111001111001111001001111001001111001111001001111001111001111001111001111001111001111001111001111001001001111001111001111001111001111001001111001111001111001111001111001111001111001001111001111001001111001001001111001111001001001111001111001111001111001111001111001111001001111001111001111001111001111001111001001111" decoding_index="5" message_type_id="5006e104-eaea-440b-821e-95d12eb81410" modulator_index="0" pause="7752" timestamp="1573140832.7673469"/>
+      <message bits="1001001001001001001001001111001001111001111001001001001001001111001111001111001111001001111001111001111001001001111001111001111001001111001001111001111001001111001111001111001111001111001111001111001111001111001001001111001111001111001111001111001001111001111001111001111001111001111001111001001111001111001001111001001001111001111001001001111001111001111001111001111001111001111001001111001111001111001111001111001111001001111" decoding_index="5" message_type_id="5006e104-eaea-440b-821e-95d12eb81410" modulator_index="0" pause="80093" timestamp="1573140832.7673469"/>
+      <message bits="1001001001001001001001001111001001111001111001001001001001001111001111001111001111001001111001111001111001001001111001111001111001001111001001111001111001001111001001111001111001111001111001111001111001111001001111001111001111001111001111001111001111001001001111001111001111001111001111001001111001111001001111001001001111001111001001001111001111001111001111001001001001001001001001001111001111001001111" decoding_index="5" message_type_id="5006e104-eaea-440b-821e-95d12eb81410" modulator_index="0" pause="44327" timestamp="1573140835.4043543"/>
+      <message bits="10010010010010010010010011110010011110011110010010001001001001111001111001111001111001001111001111001111001001001111001111001111001111001111001001111001111001111001001001001111001111001111001111001111001111001111001001111001111001111001111001111001111001001001111001111001111001111001111001001111001111001001111001001001001001111001001111001111001111001111001001001001111001001001001111001111001111001001" decoding_index="5" message_type_id="5006e104-eaea-440b-821e-95d12eb81410" modulator_index="0" pause="58605" timestamp="1573141598.5109105"/>
+   </messages>
+   <message_types>
+      <message_type assigned_by_logic_analyzer="0" assigned_by_ruleset="0" id="ca51057c-ebfe-4069-8eba-889c48af96c5" name="Default">
+         <ruleset mode="0"/>
+      </message_type>
+      <message_type assigned_by_logic_analyzer="0" assigned_by_ruleset="0" id="e3667f2b-a6f6-49c1-bd1c-a944c02aba2f" name="Default (weatherStation)">
+         <ruleset mode="0"/>
+      </message_type>
+      <message_type assigned_by_logic_analyzer="0" assigned_by_ruleset="0" id="5006e104-eaea-440b-821e-95d12eb81410" name="DeviceID">
+         <label apply_decoding="True" auto_created="False" color_index="0" display_bit_order_index="0" display_endianness="big" display_format_index="0" end="7" fuzz_me="2" fuzz_values="" name="preamble" show="2" start="0"/>
+         <label apply_decoding="True" auto_created="False" color_index="9" display_bit_order_index="0" display_endianness="big" display_format_index="0" end="11" fuzz_me="2" fuzz_values="" name="msg type" show="2" start="7"/>
+         <label apply_decoding="True" auto_created="False" color_index="1" display_bit_order_index="0" display_endianness="big" display_format_index="3" end="19" fuzz_me="2" fuzz_values="" name="Device ID" show="2" start="11"/>
+         <label apply_decoding="True" auto_created="False" color_index="2" display_bit_order_index="0" display_endianness="big" display_format_index="3" end="31" fuzz_me="2" fuzz_values="" name="Temprature" show="2" start="19"/>
+         <label apply_decoding="True" auto_created="False" color_index="3" display_bit_order_index="0" display_endianness="big" display_format_index="3" end="39" fuzz_me="2" fuzz_values="" name="Humidity" show="2" start="31"/>
+         <label apply_decoding="True" auto_created="False" color_index="4" display_bit_order_index="0" display_endianness="big" display_format_index="3" end="47" fuzz_me="2" fuzz_values="" name="Wind" show="2" start="39"/>
+         <label apply_decoding="True" auto_created="False" color_index="5" display_bit_order_index="0" display_endianness="big" display_format_index="3" end="55" fuzz_me="2" fuzz_values="" name="Gust" show="2" start="47"/>
+         <label apply_decoding="True" auto_created="False" color_index="10" display_bit_order_index="0" display_endianness="big" display_format_index="3" end="71" fuzz_me="2" fuzz_values="" name="rain" show="2" start="59"/>
+         <label apply_decoding="True" auto_created="False" color_index="8" display_bit_order_index="0" display_endianness="big" display_format_index="1" end="75" fuzz_me="2" fuzz_values="" name="flags" show="2" start="71"/>
+         <label apply_decoding="True" auto_created="False" color_index="7" display_bit_order_index="0" display_endianness="big" display_format_index="1" end="79" fuzz_me="2" fuzz_values="" name="wind direction" show="2" start="75"/>
+         <checksum_label apply_decoding="True" auto_created="False" category="generic" color_index="6" data_ranges="[[0, 79]]" display_bit_order_index="0" display_endianness="big" display_format_index="1" end="87" fuzz_me="2" fuzz_values="" name="checksum" show="2" start="79">
+            <crc final_xor="00000000" polynomial="111010101" start_value="00000000"/>
+         </checksum_label>
+         <ruleset mode="0"/>
+      </message_type>
+   </message_types>
+</protocol>

@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace ConsoleTest
 {
-    class ResultToConsole<T> : PipelineBase<T, object>
+    class ResultToConsole<T> : PipelineBase<T, T>
     {
         public ResultToConsole():base(nameof(ResultToConsole<string>))
         {
@@ -14,9 +14,8 @@ namespace ConsoleTest
         }
         protected override void doWork(T item)
         {
-            
-                
-                Console.WriteLine(item);
+            Console.WriteLine(item);
+            Result.Add(item);
             
         }
     }

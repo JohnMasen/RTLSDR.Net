@@ -11,6 +11,7 @@ namespace ConsoleTest
 {
     class Program
     {
+        //天线要放好！！不能放在金属后面！！！
         private const string outputFolder = @"..\..\..\..\SampleData\";
         private const int SampleRate = 250000;
         private const int Frequency = 433920000;
@@ -23,7 +24,7 @@ namespace ConsoleTest
                 FrequencyCorrection=0,
                 Gain=0,
                 //ServerIP="127.0.0.1",
-                ServerIP="192.168.0.134",
+                ServerIP="192.168.0.133",
                 ServerPort=1234,
                 BiasTee=SampleRate
             }
@@ -126,6 +127,7 @@ namespace ConsoleTest
                 .Chain(new MorseDecode())
                 .Chain(new SignalReverse())
                 .Chain(new MisolWeatherStationDecoder())
+                //.Chain(new ResultToConsole<MisolWeahterData>())
                 .Chain(new SaveToFilePipeline<MisolWeahterData>(outputFileName, x =>
                 {
                     return $"{DateTime.Now.ToString("s")},{Newtonsoft.Json.JsonConvert.SerializeObject(x)}";

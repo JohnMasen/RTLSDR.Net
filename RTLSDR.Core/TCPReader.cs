@@ -72,6 +72,7 @@ namespace RTLSDR.Core
             SendCommand(CommandType.SetFrequency, source.Frequency);
             SendCommand(CommandType.SetDirectSampling, source.DirectSampling ? 1 : 0);
             SendCommand(CommandType.SetFrequencyCorrection, source.FrequencyCorrection);
+            SendCommand(CommandType.SetBiasTee, source.BiasTee);
             if (source.Gain == 0)
             {
                 SendCommand(CommandType.SetGainMode, 0);
@@ -81,7 +82,7 @@ namespace RTLSDR.Core
                 SendCommand(CommandType.SetGainMode, 1);
                 SendCommand(CommandType.SetGain, source.Gain);
             }
-            SendCommand(CommandType.SetBiasTee, source.BiasTee);
+            
             #endregion
 
             #region receive data

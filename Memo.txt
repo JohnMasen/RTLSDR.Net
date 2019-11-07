@@ -1,0 +1,4 @@
+rtl_433 -F mqtt://johnhomesvr
+
+
+rtl_tcp -a 192.168.0.133
