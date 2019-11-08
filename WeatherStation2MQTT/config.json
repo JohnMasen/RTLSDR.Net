@@ -12,7 +12,12 @@
   "mqtt": {
     "BrokerAddress": "johnhomesvr",
     "BrokerPort": 1883,
-    "MessagePath": "Devices/Weatherstation"
+    "MessagePath": "Devices/Weatherstation",
+    "UserName": "user",
+    "Password": ""
+  },
+  "iothub_device": {
+    "ConnectionString": ""
   }
   
 }

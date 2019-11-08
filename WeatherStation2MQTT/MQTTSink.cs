@@ -1,4 +1,5 @@
-﻿using RTLSDR.Core;
+﻿using Microsoft.Extensions.Logging;
+using RTLSDR.Core;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -14,21 +15,35 @@ namespace WeatherStation2MQTT
         public string BrokerAddress { get; set; }
         public int BrokerPort { get; set; } = 1883;
         public string MessagePath { get; set; } = "/Devices/Weatherstation";
+        public string UserName { get; set; }
+        public string Password { get; set; }
 
     }
-    class MQTTSink : PipelineBase<MisolWeahterData, object>
+    class MQTTSink : PipelineBase<MisolWeahterData, MisolWeahterData>
     {
         MqttClient client;
         MQTTConfig config;
+        private bool enabled = false;
         protected override void Init()
         {
             base.Init();
+            enabled = !string.IsNullOrWhiteSpace(config.BrokerAddress);
+            if (enabled)
+            {
+                Console.WriteLine("MQTT enabled");
+            }
+            else
+            {
+                Console.WriteLine("Config not found or invalid broker address, MQTT disabled");
+                return;
+            }
+
             if (!config.MessagePath.EndsWith("/"))
             {
                 config.MessagePath += "/";
             }
             client = new MqttClient(config.BrokerAddress, config.BrokerPort, false, MqttSslProtocols.None, null, null);
-            client.Connect("MQTTSink");
+            client.Connect("MQTTSink",config.UserName,config.Password);
             client.MqttMsgPublished += Client_MqttMsgPublished;
         }
 
@@ -46,9 +61,14 @@ namespace WeatherStation2MQTT
         }
         protected override void doWork(MisolWeahterData source)
         {
-            string path = $"{config.MessagePath}{source.DeviceID}";
-            byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(source));
-            client.Publish(path, buffer);
+            if (enabled)
+            {
+                string path = $"{config.MessagePath}{source.DeviceID}";
+                byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(source));
+                client.Publish(path, buffer);
+            }
+            
+            Result.Add(source);
         }
 
         

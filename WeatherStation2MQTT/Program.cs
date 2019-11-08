@@ -23,7 +23,7 @@ namespace WeatherStation2MQTT
             RadioConfig[] server = new RadioConfig[] { c };
                 
             TCPReader reader = new TCPReader();
-            reader.Chain(new SignalPreProcessor() { IQOutput = IQOutputEnum.IChannel })
+            var node = reader.Chain(new SignalPreProcessor() { IQOutput = IQOutputEnum.IChannel })
                     .Chain(new IQ2Wave(c.Frequency, c.SampleRate))
                     .Chain(new LPF(c.Frequency, c.SampleRate, 1000f))
                     .Chain(new MoveAverage())
@@ -33,9 +33,10 @@ namespace WeatherStation2MQTT
                     .Chain(new MorseDecode())
                     .Chain(new SignalReverse())
                     .Chain(new MisolWeatherStationDecoder())
-                    .Chain(new MQTTSink(config.GetSection("mqtt").Get<MQTTConfig>()));
-                    
-            ;
+                    .Chain(new MQTTSink(config.GetSection("mqtt")?.Get<MQTTConfig>()))
+                    .Chain(new IoTHubDeviceSink(config.GetSection("iothub_device")?.Get<IoTHubDeviceSinkConfig>()))
+                    ;
+
             reader.Start(server, cts.Token);
             Console.WriteLine("Application Started, Press Enter to exit");
             Console.ReadLine();
@@ -43,7 +44,7 @@ namespace WeatherStation2MQTT
             Console.WriteLine("waiting for threads exit...");
             PipelineManager.Default.WaitAllExit();
             Console.WriteLine("done");
-
+            Environment.Exit(0);
         }
     }
 }
