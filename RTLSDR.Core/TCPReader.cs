@@ -8,16 +8,16 @@ using System.Threading;
 
 namespace RTLSDR.Core
 {
-    public struct RadioConfig
+    public class RadioConfig
     {
-        public int Frequency;
-        public int SampleRate;
-        public bool DirectSampling;
-        public int FrequencyCorrection;
-        public int Gain;
-        public int BiasTee;
-        public string ServerIP;
-        public int ServerPort;
+        public int Frequency { get; set; }
+        public int SampleRate{ get; set; }
+        public bool DirectSampling{ get; set; }
+        public int FrequencyCorrection{ get; set; }
+        public int Gain{ get; set; }
+        public int BiasTee{ get; set; }
+        public string ServerIP{ get; set; }
+        public int ServerPort{ get; set; }
 
     }
 

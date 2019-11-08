@@ -1,0 +1,18 @@
+{
+  "rtl_tcp": {
+    "DirectSampling": false,
+    "Frequency": 433920000,
+    "SampleRate": 250000,
+    "FrequencyCorrection": 0,
+    "Gain": 0,
+    "ServerIP": "192.168.0.133",
+    "ServerPort": "1234",
+    "BiasTee": 250000
+  },
+  "mqtt": {
+    "BrokerAddress": "johnhomesvr",
+    "BrokerPort": 1883,
+    "MessagePath": "Devices/Weatherstation"
+  }
+  
+}
