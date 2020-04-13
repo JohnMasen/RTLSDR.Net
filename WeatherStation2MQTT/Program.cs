@@ -12,16 +12,20 @@ namespace WeatherStation2MQTT
         static CancellationTokenSource cts = new CancellationTokenSource();
         static void Main(string[] args)
         {
-            Dictionary<int, byte> map = new Dictionary<int, byte>();
-            map.Add(0, 0);
-            map.Add(1, 1);
+            Dictionary<int, byte> map = new Dictionary<int, byte>
+            {
+                [0]=0x0,
+                [1]=0x1
+            };
+            //map.Add(0, 0);
+            //map.Add(1, 1);
             IConfiguration config = new ConfigurationBuilder()
                 .AddJsonFile("config.json", true, false)
                 .Build();
             var c = config.GetSection("rtl_tcp").Get<RadioConfig>();
 
             RadioConfig[] server = new RadioConfig[] { c };
-                
+
             TCPReader reader = new TCPReader();
             var node = reader.Chain(new SignalPreProcessor() { IQOutput = IQOutputEnum.IChannel })
                     .Chain(new IQ2Wave(c.Frequency, c.SampleRate))
